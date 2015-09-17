@@ -21,5 +21,11 @@
   "bugs": {
     "url": "https://github.com/simenkid/dissolver/issues"
   },
-  "homepage": "https://github.com/simenkid/dissolver"
+  "homepage": "https://github.com/simenkid/dissolver",
+  "dependencies": {
+    "dissolve": "~0.3.3"
+  },
+  "devDependencies": {
+    "concentrate": "~0.2.3"
+  }
 }
