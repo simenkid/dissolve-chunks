@@ -3,11 +3,17 @@ var Dissolve = require('dissolve');
 module.exports = function () {
     var dsv = Dissolve();
 
-    dsv.chunkCompile = function (name, chunks) {
+    dsv._compileChunk = function (name, chunks) {
         return function (par) {
             par.tap(name, function () {
-                chunks.forEach(function (chk) {
-                    par = chk(par);
+                chunks.forEach(function (chunk, idx) {
+                    if (typeof chunk === 'object') {
+                        chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
+                        chunk = chunks[idx];
+                    } else if (typeof chunk !== 'function') {
+                        throw new Error('chunk should be a function or a planned object.');
+                    }
+                    par = chunk(par);
                 });
             });
             return par;
@@ -15,20 +21,20 @@ module.exports = function () {
     }
 
     dsv.compile = function (chunks) {
-        chunks.forEach(function (chk, idx) {
-            if (typeof chk === 'object') {
-                chunks[idx] = dsv.chunkCompile(chk.name, chk.chunks);
-            } else if (typeof chk !== 'function') {
+        chunks.push(Rule.term);
+
+        chunks.forEach(function (chunk, idx) {
+            if (typeof chunk === 'object') {
+                chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
+            } else if (typeof chunk !== 'function') {
                 throw new Error('chunk should be a function or a planned object.');
             }
         });
 
-        chunks.push(Rule.term);
-
         dsv.loop(function () {
             this.tap(function () {
-                chunks.forEach(function (chk) {
-                    dsv = chk(dsv);
+                chunks.forEach(function (chunk) {
+                    dsv = chunk(dsv);
                 });
             }); 
         });
@@ -43,6 +49,9 @@ module.exports = function () {
         return dsv;
     };
 
+    dsv.finish = function () {
+
+    };
 
     dsv.Rule = function () {
         return Rule;
@@ -54,7 +63,7 @@ module.exports = function () {
 var Rule = {
     clause: function (name, ruleFn) {
         Rule[name] = function (name) {
-            
+
         };
     },
     int8: function (name) {
