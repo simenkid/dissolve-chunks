@@ -2,6 +2,7 @@ var Dissolve = require('dissolve');
 
 module.exports = function () {
     var dsv = Dissolve(),
+        _chunks = [],
         compiled = false;
 
     dsv._compileChunk = function (name, chunks) {
@@ -21,32 +22,72 @@ module.exports = function () {
         }
     }
 
-    dsv.compile = function (chunks) {
-        chunks.push(Rule.term);
+    dsv.join = function (chunks) {
+        if (typeof chunks === 'function') {
+            chunks = [ Rule.clause(chunks) ];
+        }
 
         chunks.forEach(function (chunk, idx) {
             if (typeof chunk === 'object') {
                 chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
+                chunk = chunks[idx];
+            } else if (typeof chunk !== 'function') {
+                throw new Error('chunk should be a function or a planned object.');
+            }
+
+            _chunks.push(chunk);
+        });
+
+        return dsv;
+    };
+
+    dsv.compile = function (config) {
+        var config = config || { once: false };
+
+        if (compiled) {
+            throw new Error('The parser has been compiled.');
+        }
+
+        _chunks.push(Rule.term);
+
+        _chunks.forEach(function (chunk, idx) {
+            if (typeof chunk === 'object') {
+                _chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
             } else if (typeof chunk !== 'function') {
                 throw new Error('chunk should be a function or a planned object.');
             }
         });
 
-        dsv.loop(function () {
-            this.tap(function () {
-                chunks.forEach(function (chunk) {
+        if (config.once) {
+            dsv.tap(function () {
+                _chunks.forEach(function (chunk) {
                     dsv = chunk(dsv);
                 });
             }); 
-        });
 
-        dsv.on("readable", function() {
-            var parsed;
-            while (parsed = dsv.read()) {
-                dsv.emit('parsed', parsed);
-            }
-        });
+            dsv.once("readable", function() {
+                var parsed;
+                while (parsed = dsv.read()) {
+                    dsv.emit('parsed', parsed);
+                }
+            });
+        } else {
+            dsv.loop(function () {
+                this.tap(function () {
+                    _chunks.forEach(function (chunk) {
+                        dsv = chunk(dsv);
+                    });
+                }); 
+            });
 
+            dsv.on("readable", function() {
+                var parsed;
+                while (parsed = dsv.read()) {
+                    dsv.emit('parsed', parsed);
+                }
+            });
+        }
+        compiled = true;
         return dsv;
     };
 
@@ -58,8 +99,26 @@ module.exports = function () {
 };
 
 var Rule = {
-    clause: function (name, ruleFn) {
-        Rule[name] = ruleFn;
+    clause: function (ruleName, ruleFn) {
+        var theRule;
+
+        if (typeof ruleName === 'function') {
+            ruleFn = ruleName;
+            ruleName = null;
+        }
+
+        theRule = function (name) {
+            return function (par) {
+                ruleFn = ruleFn.bind(par);
+                ruleFn(name);
+                return par;
+            };
+        };
+
+        if (ruleName) {
+            Rule[ruleName] = theRule;
+        }
+        return theRule;
     },
     int8: function (name) {
         return function (par) {

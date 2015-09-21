@@ -67,56 +67,34 @@ var data = Concentrate().uint8(rawObj.field1).uint8(rawObj.field2)
                         .string(rawObj.field6.field63.f634[3], 'utf8')
                         .uint8(rawObj.field6.field64);
 data = data.result();
-//console.log(data);
 
-rule.clause('myString', function (name) {
-    return function (par) {
-        par.uint8('len').tap(function () {
-            this.string(name, this.vars.len);
-            delete this.vars.len;
-        });
-        return par;
-    };
+var myStrRule = rule.clause('myString', function (name) {
+    this.uint8('len').tap(function () {
+        this.string(name, this.vars.len);
+        delete this.vars.len;
+    });
 });
 
-/*
-string: function (name) {
-    return function (par) {
-        par.uint8('len').tap(function () {
-            this.string(name, this.vars.len);
-            delete this.vars.len;
-        });
-        return par;
-    };
-},*/
-    // function (par) {
-    //     par.uint8('len').tap(function () {
-    //         this.string('field3', this.vars.len);
-    //         delete this.vars.len;
-    //     });
-    //     return par;
-    // },
-
-var parserChunks = [
+var parserChunks1 = [
     rule.uint8('field1'),
     rule.uint8('field2'),
-    rule.stringPreLenUint8('field3'),
-    {
-        name: 'field4',
+    myStrRule('field3'),
+    {   name: 'field4',
         chunks: [ 
             rule.uint8('f41'),
             rule.stringPreLenUint8('f42'),
             rule.stringPreLenUint8('f43')
         ]
-    },
+    }
+];
+
+var parserChunks2 = [
     rule.repeat('field5', rule.stringPreLenUint8),
-    {
-        name: 'field6',
+    {   name: 'field6',
         chunks: [
             rule.repeat('field61', rule.stringPreLenUint8),
             rule.uint8('field62'),
-            {
-                name: 'field63',
+            {   name: 'field63',
                 chunks: [
                     rule.uint8('f631'),
                     rule.uint8('f632'),
@@ -129,13 +107,13 @@ var parserChunks = [
     }
 ];
 
-var parser = dChunk().compile(parserChunks);
+var parser = dChunk().join(parserChunks1).join(parserChunks2).compile({ once: true });
 
 parser.on('parsed', function(x) {
     console.log(x);
 });
 
 parser.write(data);
-// parser.write(data);
-// parser.write(data);
+parser.write(data);
+parser.write(data);
 // parser.write(data);
