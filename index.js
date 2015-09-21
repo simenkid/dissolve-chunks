@@ -2,40 +2,40 @@ var Dissolve = require('dissolve');
 
 module.exports = function () {
     var dsv = Dissolve(),
-        _chunks = [],
+        _rules = [],
         compiled = false;
 
-    dsv._compileChunk = function (name, chunks) {
+    dsv._compilerule = function (name, rules) {
         return function (par) {
             par.tap(name, function () {
-                chunks.forEach(function (chunk, idx) {
-                    if (typeof chunk === 'object') {
-                        chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
-                        chunk = chunks[idx];
-                    } else if (typeof chunk !== 'function') {
-                        throw new Error('chunk should be a function or a planned object.');
+                rules.forEach(function (rule, idx) {
+                    if (typeof rule === 'object') {
+                        rules[idx] = dsv._compilerule(rule.name, rule.rules);
+                        rule = rules[idx];
+                    } else if (typeof rule !== 'function') {
+                        throw new Error('rule should be a function or a planned object.');
                     }
-                    par = chunk(par);
+                    par = rule(par);
                 });
             });
             return par;
         }
     }
 
-    dsv.join = function (chunks) {
-        if (typeof chunks === 'function') {
-            chunks = [ Rule.clause(chunks) ];
+    dsv.join = function (rules) {
+        if (typeof rules === 'function') {
+            rules = [ Rule.clause(rules) ];
         }
 
-        chunks.forEach(function (chunk, idx) {
-            if (typeof chunk === 'object') {
-                chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
-                chunk = chunks[idx];
-            } else if (typeof chunk !== 'function') {
-                throw new Error('chunk should be a function or a planned object.');
+        rules.forEach(function (rule, idx) {
+            if (typeof rule === 'object') {
+                rules[idx] = dsv._compilerule(rule.name, rule.rules);
+                rule = rules[idx];
+            } else if (typeof rule !== 'function') {
+                throw new Error('rule should be a function or a planned object.');
             }
 
-            _chunks.push(chunk);
+            _rules.push(rule);
         });
 
         return dsv;
@@ -48,20 +48,20 @@ module.exports = function () {
             throw new Error('The parser has been compiled.');
         }
 
-        _chunks.push(Rule.term);
+        _rules.push(Rule.term);
 
-        _chunks.forEach(function (chunk, idx) {
-            if (typeof chunk === 'object') {
-                _chunks[idx] = dsv._compileChunk(chunk.name, chunk.chunks);
-            } else if (typeof chunk !== 'function') {
-                throw new Error('chunk should be a function or a planned object.');
+        _rules.forEach(function (rule, idx) {
+            if (typeof rule === 'object') {
+                _rules[idx] = dsv._compilerule(rule.name, rule.rules);
+            } else if (typeof rule !== 'function') {
+                throw new Error('rule should be a function or a planned object.');
             }
         });
 
         if (config.once) {
             dsv.tap(function () {
-                _chunks.forEach(function (chunk) {
-                    dsv = chunk(dsv);
+                _rules.forEach(function (rule) {
+                    dsv = rule(dsv);
                 });
             }); 
 
@@ -74,8 +74,8 @@ module.exports = function () {
         } else {
             dsv.loop(function () {
                 this.tap(function () {
-                    _chunks.forEach(function (chunk) {
-                        dsv = chunk(dsv);
+                    _rules.forEach(function (rule) {
+                        dsv = rule(dsv);
                     });
                 }); 
             });

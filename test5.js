@@ -1,6 +1,6 @@
 var Concentrate = require('concentrate'),
-    dChunk = require('./index'),
-    rule = dChunk().Rule();
+    DCs = require('./index'),
+    rule = DCs().Rule();
 
 var rawObj = {
     field1: 100,
@@ -80,7 +80,7 @@ var parserChunks1 = [
     rule.uint8('field2'),
     myStrRule('field3'),
     {   name: 'field4',
-        chunks: [ 
+        rules: [ 
             rule.uint8('f41'),
             rule.stringPreLenUint8('f42'),
             rule.stringPreLenUint8('f43'),
@@ -97,11 +97,11 @@ var parserChunks1 = [
 var parserChunks2 = [
     rule.repeat('field5', rule.stringPreLenUint8),
     {   name: 'field6',
-        chunks: [
+        rules: [
             rule.repeat('field61', rule.stringPreLenUint8),
             rule.uint8('field62'),
             {   name: 'field63',
-                chunks: [
+                rules: [
                     rule.uint8('f631'),
                     rule.uint8('f632'),
                     rule.stringPreLenUint8('f633'),
@@ -113,7 +113,7 @@ var parserChunks2 = [
     }
 ];
 
-var parser = dChunk().join(parserChunks1).join(parserChunks2).compile({ once: false });
+var parser = DCs().join(parserChunks1).join(parserChunks2).compile({ once: false });
 
 parser.on('parsed', function(x) {
     console.log(x);
