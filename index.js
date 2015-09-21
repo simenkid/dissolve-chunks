@@ -3,32 +3,32 @@ var Dissolve = require('dissolve');
 module.exports = function () {
     var dsv = Dissolve();
 
-    dsv.pieCompile = function (name, pies) {
+    dsv.chunkCompile = function (name, chunks) {
         return function (par) {
             par.tap(name, function () {
-                pies.forEach(function (pie) {
-                    par = pie(par);
+                chunks.forEach(function (chk) {
+                    par = chk(par);
                 });
             });
             return par;
         }
     }
 
-    dsv.compile = function (pies) {
-        pies.forEach(function (pie, idx) {
-            if (typeof pie === 'object') {
-                pies[idx] = dsv.pieCompile(pie.name, pie.pies);
-            } else if (typeof pie !== 'function') {
-                throw new Error('pie should be a function or a planned object.');
+    dsv.compile = function (chunks) {
+        chunks.forEach(function (chk, idx) {
+            if (typeof chk === 'object') {
+                chunks[idx] = dsv.chunkCompile(chk.name, chk.chunks);
+            } else if (typeof chk !== 'function') {
+                throw new Error('chunk should be a function or a planned object.');
             }
         });
 
-        pies.push(parserPie.term);
+        chunks.push(Rule.term);
 
         dsv.loop(function () {
             this.tap(function () {
-                pies.forEach(function (pie) {
-                    dsv = pie(dsv);
+                chunks.forEach(function (chk) {
+                    dsv = chk(dsv);
                 });
             }); 
         });
@@ -44,14 +44,19 @@ module.exports = function () {
     };
 
 
-    dsv.Pie = function () {
-        return parserPie;
+    dsv.Rule = function () {
+        return Rule;
     };
 
     return dsv;
 };
 
-var parserPie = {
+var Rule = {
+    clause: function (name, ruleFn) {
+        Rule[name] = function (name) {
+            
+        };
+    },
     int8: function (name) {
         return function (par) {
             par.int8(name);
@@ -304,7 +309,6 @@ var parserPie = {
                         mapped.push(n[tmpName]);
                     });
                     this.vars = mapped;
-                    console.log(this.vars);
                 });
             }).tap(function () {
                 this.vars[name] = mapped;

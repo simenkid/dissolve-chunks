@@ -1,6 +1,6 @@
 var Concentrate = require('concentrate'),
-    Dissolve = require('./index'),
-    parserPie = Dissolve().Pie();
+    dChunk = require('./index'),
+    rule = dChunk().Rule();
 
 var rawObj = {
     field1: 100,
@@ -33,32 +33,28 @@ var data = Concentrate().uint8(rawObj.field1).uint8(rawObj.field2)
                         .string(rawObj.field5[3], 'utf8');
 data = data.result();
 
-var rawObjParser = {
-    //field5: ['xxx', 'ffff', 'aaa', 'pppp' ]
-};
-
-var parserPies = [
-    parserPie.uint8('field1'),
-    parserPie.uint8('field2'),
-    parserPie.string('field3'),
+var parserChunks = [
+    rule.uint8('field1'),
+    rule.uint8('field2'),
+    rule.string('field3'),
     {
         name: 'field4',
-        pies: [ 
-            parserPie.uint8('f41'),
-            parserPie.string('f42'),
-            parserPie.string('f43')
+        chunks: [ 
+            rule.uint8('f41'),
+            rule.string('f42'),
+            rule.string('f43')
         ]
     },
-    parserPie.repeat('field5', parserPie.string)
+    rule.repeat('field5', rule.string)
 ];
 
-var parser = Dissolve().compile(parserPies);
+var parser = dChunk().compile(parserChunks);
 
 parser.on('parsed', function(x) {
     console.log(x);
 });
 
 parser.write(data);
-parser.write(data);
-parser.write(data);
-parser.write(data);
+// parser.write(data);
+// parser.write(data);
+// parser.write(data);
