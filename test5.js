@@ -83,7 +83,13 @@ var parserChunks1 = [
         chunks: [ 
             rule.uint8('f41'),
             rule.stringPreLenUint8('f42'),
-            rule.stringPreLenUint8('f43')
+            rule.stringPreLenUint8('f43'),
+            function (par) {
+                par.tap(function () {
+                    console.log(this.vars);
+                });
+                return par;
+            },
         ]
     }
 ];
@@ -107,7 +113,7 @@ var parserChunks2 = [
     }
 ];
 
-var parser = dChunk().join(parserChunks1).join(parserChunks2).compile({ once: true });
+var parser = dChunk().join(parserChunks1).join(parserChunks2).compile({ once: false });
 
 parser.on('parsed', function(x) {
     console.log(x);

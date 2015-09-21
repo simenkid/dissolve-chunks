@@ -379,7 +379,7 @@ var Rule = {
         }); 
         return par;
     },
-    repeat: function (name, pieFn) {
+    repeat: function (name, parFn) {
         return function (par) {
             var tmpName = 'tmp',
                 mapped = [],
@@ -389,7 +389,7 @@ var Rule = {
                 var rpLength;
                 this.uint8('len').loop('tmpArr',function (end) {
                     rpLength = this.vars.len;
-                    par = pieFn(tmpName)(par);
+                    par = parFn(tmpName)(par);
                     repeatCount += 1;
 
                     if (repeatCount === rpLength) {
