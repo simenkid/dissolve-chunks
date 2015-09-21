@@ -1,14 +1,14 @@
 {
-  "name": "dissolver",
+  "name": "dissolve-chunks",
   "version": "0.0.1",
-  "description": "",
+  "description": "A declarative parser generator based on dissolve",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/simenkid/dissolver.git"
+    "url": "https://github.com/simenkid/dissolve-chunks.git"
   },
   "keywords": [
     "dissolve",
@@ -19,9 +19,9 @@
   "author": "Simen Li",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/simenkid/dissolver/issues"
+    "url": "https://github.com/simenkid/dissolve-chunks/issues"
   },
-  "homepage": "https://github.com/simenkid/dissolver",
+  "homepage": "https://github.com/simenkid/dissolve-chunks",
   "dependencies": {
     "dissolve": "~0.3.3"
   },
