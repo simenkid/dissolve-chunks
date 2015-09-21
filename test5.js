@@ -69,31 +69,59 @@ var data = Concentrate().uint8(rawObj.field1).uint8(rawObj.field2)
 data = data.result();
 //console.log(data);
 
+rule.clause('myString', function (name) {
+    return function (par) {
+        par.uint8('len').tap(function () {
+            this.string(name, this.vars.len);
+            delete this.vars.len;
+        });
+        return par;
+    };
+});
+
+/*
+string: function (name) {
+    return function (par) {
+        par.uint8('len').tap(function () {
+            this.string(name, this.vars.len);
+            delete this.vars.len;
+        });
+        return par;
+    };
+},*/
+    // function (par) {
+    //     par.uint8('len').tap(function () {
+    //         this.string('field3', this.vars.len);
+    //         delete this.vars.len;
+    //     });
+    //     return par;
+    // },
+
 var parserChunks = [
     rule.uint8('field1'),
     rule.uint8('field2'),
-    rule.string('field3'),
+    rule.stringPreLenUint8('field3'),
     {
         name: 'field4',
         chunks: [ 
             rule.uint8('f41'),
-            rule.string('f42'),
-            rule.string('f43')
+            rule.stringPreLenUint8('f42'),
+            rule.stringPreLenUint8('f43')
         ]
     },
-    rule.repeat('field5', rule.string),
+    rule.repeat('field5', rule.stringPreLenUint8),
     {
         name: 'field6',
         chunks: [
-            rule.repeat('field61', rule.string),
+            rule.repeat('field61', rule.stringPreLenUint8),
             rule.uint8('field62'),
             {
                 name: 'field63',
                 chunks: [
                     rule.uint8('f631'),
                     rule.uint8('f632'),
-                    rule.string('f633'),
-                    rule.repeat('f634', rule.string)
+                    rule.stringPreLenUint8('f633'),
+                    rule.repeat('f634', rule.stringPreLenUint8)
                 ]
             },
             rule.uint8('field64'),

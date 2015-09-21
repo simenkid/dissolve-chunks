@@ -1,7 +1,8 @@
 var Dissolve = require('dissolve');
 
 module.exports = function () {
-    var dsv = Dissolve();
+    var dsv = Dissolve(),
+        compiled = false;
 
     dsv._compileChunk = function (name, chunks) {
         return function (par) {
@@ -49,10 +50,6 @@ module.exports = function () {
         return dsv;
     };
 
-    dsv.finish = function () {
-
-    };
-
     dsv.Rule = function () {
         return Rule;
     };
@@ -62,9 +59,7 @@ module.exports = function () {
 
 var Rule = {
     clause: function (name, ruleFn) {
-        Rule[name] = function (name) {
-
-        };
+        Rule[name] = ruleFn;
     },
     int8: function (name) {
         return function (par) {
@@ -270,7 +265,19 @@ var Rule = {
             return par;
         };
     },
-    buffer: function (name) {
+    buffer: function (name, length) {
+        return function (par) {
+            par.string(name, length);
+            return par;
+        };
+    },
+    string: function (name, length) {
+        return function (par) {
+            par.string(name, length);
+            return par;
+        };
+    },
+    bufferPreLenUint8: function (name) {
         return function (par) {
             par.uint8('len').tap(function () {
                 this.string(name, this.vars.len);
@@ -279,9 +286,27 @@ var Rule = {
             return par;
         };
     },
-    string: function (name) {
+    bufferPreLenUint16: function (name) {
+        return function (par) {
+            par.uint16('len').tap(function () {
+                this.string(name, this.vars.len);
+                delete this.vars.len;
+            });
+            return par;
+        };
+    },
+    stringPreLenUint8: function (name) {
         return function (par) {
             par.uint8('len').tap(function () {
+                this.string(name, this.vars.len);
+                delete this.vars.len;
+            });
+            return par;
+        };
+    },
+    stringPreLenUint16: function (name) {
+        return function (par) {
+            par.uint16('len').tap(function () {
                 this.string(name, this.vars.len);
                 delete this.vars.len;
             });
