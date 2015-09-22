@@ -1,5 +1,5 @@
-var DC = require('./index'),
-    ru = DC().Rule();
+var DChunks = require('../index'),
+    ru = DChunks().Rule();
 
 var data1 = [
     0x64,  // x
@@ -23,27 +23,19 @@ var data1 = [
     0x65, 0x61, 0x73, 0x69, 0x65, 0x72, 0x2e
 ];
 
-data1 = new Buffer(data1);
-console.log(data1);
+var data1_buf = new Buffer(data1);
 
-var ruleChunks = [
+var chunkRules = [
     ru.uint8('x'),
     ru.stringPreLenUint8('y'),
-    {
-        name: 'z',
-        rules: [
-            ru.uint8('z1'),
-            ru.stringPreLenUint8('z2'),
-            ru.repeat('z3', ru.uint8),
-        ]
-    },
+    ru.squash('z', [ ru.uint8('z1'), ru.stringPreLenUint8('z2'), ru.repeat('z3', ru.uint8) ]),
     ru.repeat('m', ru.stringPreLenUint8)
 ];
 
-var parser = DC().join(ruleChunks).compile();
+var parser = DChunks().join(chunkRules).compile();
 
 parser.on('parsed', function (result) {
     console.log(result);
 });
 
-parser.write(data1);
+parser.write(data1_buf);

@@ -1,118 +1,158 @@
 var Dissolve = require('dissolve');
 
 module.exports = function () {
-    var dsv = Dissolve(),
+    var dChunks = Dissolve(),
         _rules = [],
         compiled = false;
 
-    dsv._compilerule = function (name, rules) {
-        return function (par) {
+    dChunks.join = function (rules) {
+        if (typeof rules === 'function') {
+            rules = [ rules ];
+        }
+
+        rules.forEach(function (rule, idx) {
+            if (typeof rule === 'object') {
+                rules[idx] = Rule.squash(rule.name, rule.rules);
+                rule = rules[idx];
+            } else if (typeof rule !== 'function') {
+                throw new Error('x rule should be a function or a planned object.');
+            }
+
+            _rules.push(rule);
+        });
+
+        return dChunks;
+    };
+
+    dChunks.compile = function (option) {
+        var option = option || { once: false };
+
+        if (compiled) {
+            throw new Error('The parser has been compiled.');
+        }
+
+        _rules.push(Rule.term());
+
+        _rules.forEach(function (rule, idx) {
+            if (typeof rule === 'object') {
+               _rules[idx] = Rule.squash(rule.name, rule.rules);
+            } else if (typeof rule !== 'function') {
+                throw new Error('rule should be a function or a planned object.');
+            } else {
+                if (!rule.hasOwnProperty('claused')) {
+                    throw new Error(rule.name + ' is not a valid rule.');
+                }
+            }
+        });
+
+        if (option.once) {
+            dChunks.tap(function () {
+                _rules.forEach(function (rule) {
+                    dChunks = rule(dChunks);
+                });
+            }); 
+
+            dChunks.once("readable", function() {
+                var parsed;
+                while (parsed = dChunks.read()) {
+                    dChunks.emit('parsed', parsed);
+                }
+            });
+        } else {
+            dChunks.loop(function () {
+                this.tap(function () {
+                    _rules.forEach(function (rule) {
+                        dChunks = rule(dChunks);
+                    });
+                }); 
+            });
+
+            dChunks.on("readable", function() {
+                var parsed;
+                while (parsed = dChunks.read()) {
+                    dChunks.emit('parsed', parsed);
+                }
+            });
+        }
+        compiled = true;
+        return dChunks;
+    };
+
+    dChunks.Rule = function () {
+        return Rule;
+    };
+
+    return dChunks;
+};
+
+/*************************************************************************************************/
+/*** Protected Functions                                                                       ***/
+/*************************************************************************************************/
+
+var uintRules = [
+  'int8', 'sint8', 'uint8',
+  'int16', 'int16le', 'int16be', 'sint16', 'sint16le', 'sint16be', 'uint16', 'uint16le', 'uint16be',
+  'int32', 'int32le', 'int32be', 'sint32', 'sint32le', 'sint32be', 'uint32', 'uint32le', 'uint32be',
+  'int64', 'int64le', 'int64be', 'sint64', 'sint64le', 'sint64be', 'uint64', 'uint64le', 'uint64be',
+  'floatbe', 'floatle', 'doublebe', 'doublele'
+];
+
+var Rule = {
+    squash: function (name, rules) {
+        var clausedRule;
+        if (typeof name !== 'string') {
+            rules = name;
+            name = undefined;
+        }
+
+        if (typeof rules === 'function' && rules.claused) {
+            rules = [ rules ];
+        }
+
+        if (!Array.isArray(rules)) {
+            throw new Error('rules should be an array of clasued functions, or a single claused function.');
+        }
+        clausedRule = function (par) {
             par.tap(name, function () {
                 rules.forEach(function (rule, idx) {
                     if (typeof rule === 'object') {
-                        rules[idx] = dsv._compilerule(rule.name, rule.rules);
+                        rules[idx] = Rule.squash(rule.name, rule.rules);
                         rule = rules[idx];
-                    } else if (typeof rule !== 'function') {
-                        throw new Error('rule should be a function or a planned object.');
+                    } else if (typeof rule !== 'function' || !rule.claused) {
+                        throw new Error('rule should be a claused function or a rule object.');
                     }
                     par = rule(par);
                 });
             });
             return par;
         }
-    }
 
-    dsv.join = function (rules) {
-        if (typeof rules === 'function') {
-            rules = [ Rule.clause(rules) ];
-        }
-
-        rules.forEach(function (rule, idx) {
-            if (typeof rule === 'object') {
-                rules[idx] = dsv._compilerule(rule.name, rule.rules);
-                rule = rules[idx];
-            } else if (typeof rule !== 'function') {
-                throw new Error('rule should be a function or a planned object.');
-            }
-
-            _rules.push(rule);
-        });
-
-        return dsv;
-    };
-
-    dsv.compile = function (config) {
-        var config = config || { once: false };
-
-        if (compiled) {
-            throw new Error('The parser has been compiled.');
-        }
-
-        _rules.push(Rule.term);
-
-        _rules.forEach(function (rule, idx) {
-            if (typeof rule === 'object') {
-                _rules[idx] = dsv._compilerule(rule.name, rule.rules);
-            } else if (typeof rule !== 'function') {
-                throw new Error('rule should be a function or a planned object.');
-            }
-        });
-
-        if (config.once) {
-            dsv.tap(function () {
-                _rules.forEach(function (rule) {
-                    dsv = rule(dsv);
-                });
-            }); 
-
-            dsv.once("readable", function() {
-                var parsed;
-                while (parsed = dsv.read()) {
-                    dsv.emit('parsed', parsed);
-                }
-            });
-        } else {
-            dsv.loop(function () {
-                this.tap(function () {
-                    _rules.forEach(function (rule) {
-                        dsv = rule(dsv);
-                    });
-                }); 
-            });
-
-            dsv.on("readable", function() {
-                var parsed;
-                while (parsed = dsv.read()) {
-                    dsv.emit('parsed', parsed);
-                }
-            });
-        }
-        compiled = true;
-        return dsv;
-    };
-
-    dsv.Rule = function () {
-        return Rule;
-    };
-
-    return dsv;
-};
-
-var Rule = {
+        clausedRule.claused = true;
+        return clausedRule;
+    },
     clause: function (ruleName, ruleFn) {
         var theRule;
 
-        if (typeof ruleName === 'function') {
+        if (typeof ruleName !== 'string') {
             ruleFn = ruleName;
             ruleName = null;
         }
 
-        theRule = function (name) {
-            return function (par) {
+        if (typeof ruleFn !== 'function') {
+            throw new Error('The ruleFn should be a function.');
+        }
+
+        theRule = function () {
+            var args = arguments,
+                clausedRule;
+
+            clausedRule = function (par) {
                 ruleFn = ruleFn.bind(par);
-                ruleFn(name);
+                ruleFn.apply(null, args);
                 return par;
             };
+            clausedRule.claused = true;
+            return clausedRule;
         };
 
         if (ruleName) {
@@ -120,267 +160,80 @@ var Rule = {
         }
         return theRule;
     },
-    int8: function (name) {
-        return function (par) {
-            par.int8(name);
+    term: function () {
+        var clausedRule = function (par) {
+            par.tap(function () {
+                this.push(this.vars);
+                this.vars = {};
+            });
             return par;
         };
-    },
-    sint8: function (name) {
-        return function (par) {
-            par.sint8(name);
-            return par;
-        };
-    },
-    uint8: function (name) {
-        return function (par) {
-            par.uint8(name);
-            return par;
-        };
-    },
-    int16: function (name) {
-        return function (par) {
-            par.int16(name);
-            return par;
-        };
-    },
-    int16le: function (name) {
-        return function (par) {
-            par.int16le(name);
-            return par;
-        };
-    },
-    int16be: function (name) {
-        return function (par) {
-            par.int16be(name);
-            return par;
-        };
-    },
-    sint16: function (name) {
-        return function (par) {
-            par.sint16(name);
-            return par;
-        };
-    },
-    sint16le: function (name) {
-        return function (par) {
-            par.sint16le(name);
-            return par;
-        };
-    },
-    sint16be: function (name) {
-        return function (par) {
-            par.sint16be(name);
-            return par;
-        };
-    },
-    uint16: function (name) {
-        return function (par) {
-            par.uint16(name);
-            return par;
-        };
-    },
-    uint16le: function (name) {
-        return function (par) {
-            par.uint16le(name);
-            return par;
-        };
-    },
-    uint16be: function (name) {
-        return function (par) {
-            par.uint16be(name);
-            return par;
-        };
-    },
-    int32: function (name) {
-        return function (par) {
-            par.int32(name);
-            return par;
-        };
-    },
-    int32le: function (name) {
-        return function (par) {
-            par.int32le(name);
-            return par;
-        };
-    },
-    int32be: function (name) {
-        return function (par) {
-            par.int32be(name);
-            return par;
-        };
-    },
-    sint32: function (name) {
-        return function (par) {
-            par.sint32(name);
-            return par;
-        };
-    },
-    sint32le: function (name) {
-        return function (par) {
-            par.sint32le(name);
-            return par;
-        };
-    },
-    sint32be: function (name) {
-        return function (par) {
-            par.sint32be(name);
-            return par;
-        };
-    },
-    uint32: function (name) {
-        return function (par) {
-            par.uint32(name);
-            return par;
-        };
-    },
-    uint32le: function (name) {
-        return function (par) {
-            par.uint32le(name);
-            return par;
-        };
-    },
-    uint32be: function (name) {
-        return function (par) {
-            par.uint32be(name);
-            return par;
-        };
-    },
-    int64: function (name) {
-        return function (par) {
-            par.int64(name);
-            return par;
-        };
-    },
-    int64le: function (name) {
-        return function (par) {
-            par.int64le(name);
-            return par;
-        };
-    },
-    int64be: function (name) {
-        return function (par) {
-            par.int64be(name);
-            return par;
-        };
-    },
-    sint64: function (name) {
-        return function (par) {
-            par.sint64(name);
-            return par;
-        };
-    },
-    sint64le: function (name) {
-        return function (par) {
-            par.sint64le(name);
-            return par;
-        };
-    },
-    sint64be: function (name) {
-        return function (par) {
-            par.sint64be(name);
-            return par;
-        };
-    },
-    uint64: function (name) {
-        return function (par) {
-            par.uint64(name);
-            return par;
-        };
-    },
-    uint64le: function (name) {
-        return function (par) {
-            par.uint64le(name);
-            return par;
-        };
-    },
-    uint64be: function (name) {
-        return function (par) {
-            par.uint64be(name);
-            return par;
-        };
-    },
-    floatbe: function (name) {
-        return function (par) {
-            par.floatbe(name);
-            return par;
-        };
-    },
-    floatle: function (name) {
-        return function (par) {
-            par.floatle(name);
-            return par;
-        };
-    },
-    doublebe: function (name) {
-        return function (par) {
-            par.doublebe(name);
-            return par;
-        };
-    },
-    doublele: function (name) {
-        return function (par) {
-            par.doublele(name);
-            return par;
-        };
+
+        clausedRule.claused = true;
+        return clausedRule;
     },
     buffer: function (name, length) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.string(name, length);
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     },
     string: function (name, length) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.string(name, length);
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     },
     bufferPreLenUint8: function (name) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.uint8('len').tap(function () {
                 this.string(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     },
     bufferPreLenUint16: function (name) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.uint16('len').tap(function () {
                 this.string(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     },
     stringPreLenUint8: function (name) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.uint8('len').tap(function () {
                 this.string(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     },
     stringPreLenUint16: function (name) {
-        return function (par) {
+        var clausedRule = function (par) {
             par.uint16('len').tap(function () {
                 this.string(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
         };
-    },
-    term: function (par) {
-        par.tap(function () {
-            this.push(this.vars);
-            this.vars = {};
-        }); 
-        return par;
+        clausedRule.claused = true;
+        return clausedRule;
     },
     repeat: function (name, parFn) {
-        return function (par) {
+        var clausedRule = function (par) {
             var tmpName = 'tmp',
                 mapped = [],
                 repeatCount = 0;
@@ -409,5 +262,34 @@ var Rule = {
 
             return par;
         };
+        clausedRule.claused = true;
+        return clausedRule;
     }
 };
+
+
+makeRulesOntoRule(Rule, uintRules);
+
+/*************************************************************************************************/
+/*** Private Functions                                                                         ***/
+/*************************************************************************************************/
+function makeRulesOntoRule(ruleObj, ruleNames) {
+    for (var i = 0, len = ruleNames.length; i < len; i++) {
+        if (!ruleObj.hasOwnProperty(ruleNames[i])) {
+            (function () {
+                var ruleName = ruleNames[i];
+                ruleObj[ruleName] = function () {
+                    var args = arguments,
+                        clausedRule;
+
+                    clausedRule = function (par) {
+                        par[ruleName].apply(par, args);
+                        return par;
+                    };
+                    clausedRule.claused = true;
+                    return clausedRule;
+                };
+            }());
+        }
+    }
+}
