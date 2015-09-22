@@ -24,8 +24,8 @@ module.exports = function () {
         return dChunks;
     };
 
-    dChunks.compile = function (option) {
-        var option = option || { once: false };
+    dChunks.compile = function (config) {
+        var config = config || { once: false };
 
         if (compiled) {
             throw new Error('The parser has been compiled.');
@@ -45,7 +45,7 @@ module.exports = function () {
             }
         });
 
-        if (option.once) {
+        if (config.once) {
             dChunks.tap(function () {
                 _rules.forEach(function (rule) {
                     dChunks = rule(dChunks);
