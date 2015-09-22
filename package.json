@@ -24,8 +24,5 @@
   "homepage": "https://github.com/simenkid/dissolve-chunks",
   "dependencies": {
     "dissolve": "~0.3.3"
-  },
-  "devDependencies": {
-    "concentrate": "~0.2.3"
   }
 }
