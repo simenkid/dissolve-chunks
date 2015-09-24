@@ -1,3 +1,4 @@
+'strict'
 var Dissolve = require('dissolve');
 
 module.exports = function () {
@@ -17,7 +18,6 @@ module.exports = function () {
             } else if (typeof rule !== 'function') {
                 throw new Error('x rule should be a function or a planned object.');
             }
-
             _rules.push(rule);
         });
 
@@ -123,9 +123,13 @@ var Rule = {
                     }
                     par = rule(par);
                 });
+            }).tap(function () {
+                for (var k in this.vars) {
+                    delete this.vars[k].__proto__;
+                }
             });
             return par;
-        }
+        };
 
         clausedRule.claused = true;
         return clausedRule;

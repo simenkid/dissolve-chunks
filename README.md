@@ -156,6 +156,8 @@ var parser = DChunks().join(chunkRules).compile();
 parser.on('parsed', function (result) {
     console.log(result);
 });
+
+// That's all! You may like trying yourself to write this parser with Dissolve.
 ```
 <br>
 #### 2.4 Write the binaries to the parser

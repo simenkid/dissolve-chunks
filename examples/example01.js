@@ -25,12 +25,15 @@ var data1 = [
 
 var data1_buf = new Buffer(data1);
 
+var x = ru.squash('G', [ru.uint8('x'), ru.stringPreLenUint8('y')]);
+
+
 var chunkRules = [
-    ru.uint8('x'),
-    ru.stringPreLenUint8('y'),
+    x,
     ru.squash('z', [ ru.uint8('z1'), ru.stringPreLenUint8('z2'), ru.repeat('z3', ru.uint8) ]),
     ru.repeat('m', ru.stringPreLenUint8)
 ];
+
 
 var parser = DChunks().join(chunkRules).compile();
 
