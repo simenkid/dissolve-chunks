@@ -31,7 +31,6 @@ var chunkRules = [
     ru.repeat('m', ru.stringPreLenUint8)
 ];
 
-
 var parser = DChunks().join(chunkRules).compile();
 
 parser.on('parsed', function (result) {
