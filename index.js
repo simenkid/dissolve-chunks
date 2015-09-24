@@ -174,7 +174,7 @@ var Rule = {
     },
     buffer: function (name, length) {
         var clausedRule = function (par) {
-            par.string(name, length);
+            par.buffer(name, length);
             return par;
         };
         clausedRule.claused = true;
@@ -191,7 +191,7 @@ var Rule = {
     bufferPreLenUint8: function (name) {
         var clausedRule = function (par) {
             par.uint8('len').tap(function () {
-                this.string(name, this.vars.len);
+                this.buffer(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
@@ -202,7 +202,7 @@ var Rule = {
     bufferPreLenUint16: function (name) {
         var clausedRule = function (par) {
             par.uint16('len').tap(function () {
-                this.string(name, this.vars.len);
+                this.buffer(name, this.vars.len);
                 delete this.vars.len;
             });
             return par;
@@ -232,7 +232,23 @@ var Rule = {
         clausedRule.claused = true;
         return clausedRule;
     },
-    repeat: function (name, parFn) {
+    repeat: function (name, parFn, times) {
+        var timed = false,
+            lenType;
+        if (typeof name !== 'string') {
+            throw new Error('Argument name should be given with a string.');
+        }
+        if (typeof parFn !== 'function') {
+            throw new Error('Argument parFn should be a function.');
+        }
+
+        if (typeof times === 'number') {
+            timed = true;
+        } else if (typeof times === 'string') {
+            lenType = times;
+        } else {
+            lenType = 'uint8';
+        }
         var clausedRule = function (par) {
             var tmpName = 'tmp',
                 mapped = [],
@@ -240,8 +256,15 @@ var Rule = {
 
             par.tap(name, function () {
                 var rpLength;
-                this.uint8('len').loop('tmpArr',function (end) {
-                    rpLength = this.vars.len;
+
+                if (!timed) { this[lenType]('len'); }
+
+                this.loop('tmpArr',function (end) {
+                    if (!timed) {
+                        rpLength = this.vars.len;
+                    } else {
+                        rpLength = times;
+                    }
                     par = parFn(tmpName)(par);
                     repeatCount += 1;
 
@@ -249,8 +272,7 @@ var Rule = {
                         end();
                     }
                 }).tap(function () {
-                    delete this.vars.len;
-
+                    if (!timed) { delete this.vars.len; }
                     this.vars.tmpArr.forEach(function (n) {
                         mapped.push(n[tmpName]);
                     });

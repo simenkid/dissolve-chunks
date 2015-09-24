@@ -15,7 +15,7 @@ Here is an pseudo example:
 
 ```javascript
 var chunk1_rules = [ rule1, rule2, rule3 ],
-    chunk2_rules = [ rule4, squash([ rule5-1, rule5-2 ]) ],
+    chunk2_rules = [ rule4, squash([ rule5_1, rule5_2 ]) ],
     chunk3_rule = squash([ rule6, rule7 ]),
     chunk4_rule = rule8,
     chunk5_rule = squash('key_name', [ rule9, rule10 ]);
@@ -130,7 +130,7 @@ Let's go back to `data1.z`.
 * For such a medium-szie data chunk, we can use `squash('z', [ rule1, rule2, ...])` to tell the *DChunks* to squash it into a single rule and attach the parsed result of this rule to the key `'z'`. Here, `'z'` is also a namespace for **Dissolve** to know that who owns `this.vars` object. 
 
 <br>
-The rule for parsing the big chunk of `data1_buf` is declared with many smaller chunk parsing rules that are oredred in an array `chunkRules`. Let's finish the rule declarations:
+For parsing the big chunk of `data1_buf`, we can declare many smaller chunk parsing rules that are oredred in an array `chunkRules`. Let's finish the rules declaration:
 
 ```javascript
 var chunkRules = [
@@ -145,7 +145,7 @@ var chunkRules = [
 <br>
 #### 2.3 Compile the parser and listen for the 'parsed' event
 
-* Firstly, call DC() to get an instance of the **DChunks**.
+* Firstly, call DChunks() to get an instance of the **DChunks**.
 * Then, call join() to let your rules get involved in the parsing process.
 * Finally, invoke compile() method to build the parser for `data1_buf`.
 
@@ -185,7 +185,7 @@ var parser = DChunks().join(chunkRules1).join(chunkRule2).join(chunkRule3).compi
 
 <br>
 
-Methods
+APIs
 -------
 ### DChunks()
 
@@ -346,7 +346,10 @@ var chunkRules = [ ..., ru.lovelyString('certain_key'), ... ];
 * `stringPreLenUint16(name)` - rule of parsing a string with a peceding uint8 'len' field
 
 ##### Repeat
-* `repeat(name, ruleFn)` - rule of parsing an array by repeating the given **rule function**, e.g. `ru.uint8` (not `ru.uint8('xyz')`)
+* `repeat(name, ruleFn [, times])` - rule of parsing an array by repeating the given **rule function**, e.g. `ru.uint8` (not `ru.uint8('xyz')`).
+    * If the `times` is given as a *number*, then the `ruleFn` will be repeated according to the `times`.
+    * If the `times` is given as a *string*, it indicates the type of the precdeing 'len' field. The `ruleFn` will be repeated according to the parsed `len` number. The argument `times` only accepts strings such as `'uint8'`, `'uint16'`, `'uint16le'`, `'uint16be'`, `'uint32'`, `'uint32le'`, `'uint32be'`, `'uint64'`, `'uint64le'`, and `'uint64be'`.
+    * If `times` is absent, the `ruleFn` will be repeated according to the preceding `len` that is typed as an uint8 number. This is the default behavior of repeat().
 
 
 License
@@ -359,4 +362,3 @@ Contact
 
 * GitHub ([simenkid](http://github.com/simenkid))
 * Email ([simenkid@gmail.com](mailto:simenkid@mail.com))
-
