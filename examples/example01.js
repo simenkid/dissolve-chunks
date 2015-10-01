@@ -26,7 +26,7 @@ var data1 = [
 var data1_buf = new Buffer(data1);
 
 var chunkRules = [
-    ru.squash('G', [ru.uint8('x'), ru.stringPreLenUint8('y')]),
+    ru.squash([ru.uint8('x'), ru.stringPreLenUint8('y')]),
     ru.squash('z', [ ru.uint8('z1'), ru.stringPreLenUint8('z2'), ru.repeat('z3', ru.uint8) ]),
     ru.repeat('m', ru.stringPreLenUint8)
 ];

@@ -151,8 +151,7 @@ var Rule = {
                 clausedRule;
 
             clausedRule = function (par) {
-                ruleFn = ruleFn.bind(par);
-                ruleFn.apply(null, args);
+                ruleFn.apply(par, args);
                 return par;
             };
             clausedRule.claused = true;
