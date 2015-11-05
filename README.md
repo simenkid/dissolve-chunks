@@ -9,7 +9,7 @@ Overview
 
 It is quite easy to use [Dissolve](https://www.npmjs.com/package/dissolve) to parse the packed binaries into any kinds of data. Thank Dissovle for its friendly APIs and chaining methods. It really makes my life easier.
 
-With dissolve-chunks (**DChunks**), you can make a parser by defining the parsing rules for each chunk of the binaries. This means that you need not to write your parsing codes from the beginning to the end of the binaries. You can seperate the targeting data into smaller chunks, and then define the parsing rules for each of them. After all rules are ready, you can call the chainable method **join()** to sequentially connect all your rules . Finally, just call **compile()** to get your parser.
+With dissolve-chunks (**DChunks**), you can make a parser by defining the parsing rules for each chunk of the binaries. This means that you need not to write your parsing codes from the beginning to the end of the binaries. You can separate the targeting data into smaller chunks, and then define the parsing rules for each of them. After all rules are ready, you can call the chainable method **join()** to sequentially connect all your rules . Finally, just call **compile()** to get your parser.
 
 Here is an pseudo example:
 
@@ -20,7 +20,7 @@ var chunk1_rules = [ rule1, rule2, rule3 ],
     chunk4_rule = rule8,
     chunk5_rule = squash('key_name', [ rule9, rule10 ]);
 
-var paser = DChunks().join(chunk1_rules).join(chunk2_rules)
+var parser = DChunks().join(chunk1_rules).join(chunk2_rules)
                      .join(chunk3_rule).join(chunk4_rule)
                      .join(chunk5_rule).compile();
 
@@ -43,7 +43,7 @@ Installation
 
 Available via [npm](http://npmjs.org/):
 
-> $ npm install dissolve-chunks
+> $ npm install dissolve-chunks --save
 
 <br>
 
@@ -67,7 +67,7 @@ var data1 = {
 };
 ```
 
-The `data1` is formmatted in binaries according to the following table. For a string or an array, a field 'len' precedes to indicate the length of the string or array.
+The `data1` is formatted in binaries according to the following table. For a string or an array, a field 'len' precedes to indicate the length of the string or array.
 
     +--------+-------+-------------------------+--------------------------------------------------------------+-----------------------------------+
     |  field |   x   |            y            |                               z                              |                 m                 |
@@ -100,7 +100,7 @@ Next, let's see how to make the parser for `data1_buf` by using **DChunks**.
 <br>
 ### 2. Step by Step: Delcare the rules and compile them into a parser
 
-This exmple is available here: [exmaple01.js](https://github.com/simenkid/dissolve-chunks/blob/master/examples/example01.js).
+This example is available here: [example01.js](https://github.com/simenkid/dissolve-chunks/blob/master/examples/example01.js).
 
 <br>
 #### 2.1 Require the **dissolve-chunks** module and get the rule object
@@ -122,15 +122,15 @@ var DChunks = require('dissolve-chunks'),
     * We can arrange a rule `ru.stringPreLenUint8('y')` to parse it.
 * `data1.z` is another object within `data1`, and it is a data chunk of medium size. We will talk about it later.
 * `data1.m` is an array of strings. To parse an array of typed data, we can use the `repeat()` rule.
-    * In this exmaple, `ru.repeat('m', ru.stringPreLenUint8)` means that using the `ru.stringPreLenUint` rule repeatly to parse the entries in the array and pairing the resulted array to the key `'m'`.
+    * In this example, `ru.repeat('m', ru.stringPreLenUint8)` means that using the `ru.stringPreLenUint` rule repeatly to parse the entries in the array and pairing the resulted array to the key `'m'`.
 
 <br>
 Let's go back to `data1.z`.
 
-* For such a medium-szie data chunk, we can use `squash('z', [ rule1, rule2, ...])` to tell the *DChunks* to squash it into a single rule and attach the parsed result of this rule to the key `'z'`. Here, `'z'` is also a namespace for **Dissolve** to know that who owns `this.vars` object. 
+* For such a medium-size data chunk, we can use `squash('z', [ rule1, rule2, ...])` to tell the *DChunks* to squash it into a single rule and attach the parsed result of this rule to the key `'z'`. Here, `'z'` is also a namespace for **Dissolve** to know that who owns `this.vars` object. 
 
 <br>
-For parsing the big chunk of `data1_buf`, we can declare many smaller chunk parsing rules that are oredred in an array `chunkRules`. Let's finish the rules declaration:
+For parsing the big chunk of `data1_buf`, we can declare many smaller chunk parsing rules that are ordered in an array `chunkRules`. Let's finish the rules declaration:
 
 ```javascript
 var chunkRules = [
@@ -196,18 +196,18 @@ This returns an instance of the *dissolve-chunks*.
 
 ### .Rule()
 
-This method returns the [*rule object (ru)*](#Rule_Object) which is a singleton in **DChunks**. The rule object  provides you with many pre-installed rules and two useful methods. You can use `ru.squash()` to combine some parsing rules into a single one, and use `ru.clause()` to define you own parsing rule.
+This method returns the [*rule object (ru)*](#Rule_Object) which is a singleton in **DChunks**. The rule object provides you with many pre-installed rules and two useful methods. You can use `ru.squash()` to combine some parsing rules into a single one, and use `ru.clause()` to define you own parsing rule.
 
 
 ### .join(rules)
 
-This chainable method allows you to concant the rules sequentially. The argument `rules` can be a single rule or an array of rules.
+This chainable method allows you to concat the rules sequentially. The argument `rules` can be a single rule or an array of rules.
 
 
 ### .compile([option])
 
 After all the rules are joined in the parsing process, just invoke the method `.compile()` to get your parser. 
-The option is used to contol whether the parser will keep parsing binaries written to it. The default option is `{ once: false }`. If your paser only do the parsing once, you can set the attribute once to `true`.  
+The option is used to control whether the parser will keep parsing binaries written to it. The default option is `{ once: false }`. If your parser only do the parsing once, you can set the attribute once to `true`.  
 
 
 <br>
@@ -228,7 +228,7 @@ var DChunks = require('dissolve-chunks'),
 
 The `squash()` allows you to combine a series of rules into a single one. The argument `rules` can be a single rule or an array of rules.
 
-If `name` is given, the parsed result will be assigned to a sub-namespace under the current namespace. Just try the following two example, you will see the difference. It's intuitive.
+If `name` is given, the parsed result will be assigned to a sub-namespace under the current namespace. Just try the following two examples, you will see the difference. It's intuitive.
 
 
 * Example(1)
@@ -251,9 +251,9 @@ var chunkRules = [
     ru.uint8('x'),
     ru.stringPreLenUint8('y'),
 
-    // put 'z2' under the namespace of 'X'
+    // put 'z2' under the namespace of 'foo'
     ru.squash('z', [ ru.uint8('z1'),
-                     ru.squash('X', ru.stringPreLenUint8('z2')),
+                     ru.squash('foo', ru.stringPreLenUint8('z2')),
                      ru.repeat('z3', ru.uint8) ]),
 
     ru.repeat('m', ru.stringPreLenUint8)
@@ -275,7 +275,7 @@ var myStringRule = ru.clause(function (name) {
 });
 
 // Use the rule
-var chunkRules = [ ..., myStringRule('certain_key'), ... ];
+var chunkRules = [ ..., myStringRule('foo_key'), ... ];
 ```
 
 You can cache your rule to `ru` if you give it a `ruleName` in the argument, and then you can use the rule by getting it from `ru`. This may help when you are out of the scope with `var myStringRule` and no closure to access it. Add your rule to `ru`:
@@ -286,19 +286,19 @@ var myStringRule = ru.clause('lovelyString', function (name) {
 });
 
 // Use the rule somewhere from ru
-var chunkRules = [ ..., ru.lovelyString('certain_key'), ... ];
+var chunkRules = [ ..., ru.lovelyString('foo_key'), ... ];
 ```
 <br>
 
 ### Pre-installed rules
-*Note: LE (little endian), BE (BE)
+*Note: LE (little endian), BE (big endian)
 
-##### 8-bit interger
+##### 8-bit integer
 * `int8(name)`      - rule of parsing a signed 8 bit integer
 * `sint8(name)`     - rule of parsing a signed 8 bit integer
 * `uint8(name)`     - rule of parsing an unsigned 8 bit integer
 
-##### 16-bit interger 
+##### 16-bit integer 
 * `int16(name)`     - rule of parsing a signed, LE 16 bit integer
 * `int16le(name)`   - rule of parsing a signed, LE 16 bit integer
 * `int16be(name)`   - rule of parsing a signed, BE 16 bit integer
@@ -309,7 +309,7 @@ var chunkRules = [ ..., ru.lovelyString('certain_key'), ... ];
 * `uint16le(name)`  - rule of parsing an unsigned, LE 16 bit integer
 * `uint16be(name)`  - rule of parsing an unsigned, BE 16 bit integer
 
-##### 32-bit interger
+##### 32-bit integer
 * `int32(name)`     - rule of parsing a signed, LE 32 bit integer
 * `int32le(name)`   - rule of parsing a signed, LE 32 bit integer
 * `int32be(name)`   - rule of parsing a signed, BE 32 bit integer
@@ -320,7 +320,7 @@ var chunkRules = [ ..., ru.lovelyString('certain_key'), ... ];
 * `uint32le(name)`  - rule of parsing an unsigned, LE 32 bit integer
 * `uint32be(name)`  - rule of parsing an unsigned, BE 32 bit integer
 
-##### 64-bit interger
+##### 64-bit integer
 * `int64(name)`     - rule of parsing a signed, LE 64 bit integer
 * `int64le(name)`   - rule of parsing a signed, LE 64 bit integer
 * `int64be(name)`   - rule of parsing a signed, BE 64 bit integer
