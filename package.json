@@ -1,6 +1,6 @@
 {
   "name": "dissolve-chunks",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A declarative parser generator based on dissolve",
   "main": "index.js",
   "scripts": {

@@ -1,17 +1,17 @@
 Dissolve-chunks
 ===============
 
-Dissolve-chunks is a declarative parser generator based on dissolve.
+Dissolve-chunks is a declarative parser generator based on dissolve.  
 
 
 Overview
 --------
 
-It is quite easy to use [Dissolve](https://www.npmjs.com/package/dissolve) to parse the packed binaries into any kinds of data. Thank Dissovle for its friendly APIs and chaining methods. It really makes my life easier.
+It is quite easy to use [Dissolve](https://www.npmjs.com/package/dissolve) to parse the packed binaries into any kinds of data. Thank Dissovle for its friendly APIs and chaining methods. It really makes my life easier.  
 
-With dissolve-chunks (**DChunks**), you can make a parser by defining the parsing rules for each chunk of the binaries. This means that you need not to write your parsing codes from the beginning to the end of the binaries. You can separate the targeting data into smaller chunks, and then define the parsing rules for each of them. After all rules are ready, you can call the chainable method **join()** to sequentially connect all your rules . Finally, just call **compile()** to get your parser.
+With dissolve-chunks (**DChunks**), you can make a parser by defining the parsing rules for each chunk of the binaries. This means that you need not to write your parsing codes from the beginning to the end of the binaries. You can separate the targeting data into smaller chunks, and then define the parsing rules for each of them. After all rules are ready, you can call the chainable method **join()** to sequentially connect all your rules . Finally, just call **compile()** to get your parser.  
 
-Here is an pseudo example:
+Here is an pseudo example:  
 
 ```javascript
 var chunk1_rules = [ rule1, rule2, rule3 ],
@@ -32,28 +32,28 @@ parser.on('parsed', function (result) {
 Features
 --------
 
-* Making your parser in a declarative way.
-* More manageable by cutting the targeting data into smaller chunks and defining the rules for each of them.
-* You can squash some rules into a single rule by using `squash([name,] rules)`. If `name` is specified while squashing, the **DChunks** will automatically put the parsed result under that namespace. It's handy.
-* Making a parser is mostly just about declaring rules. Integrating and compiling the parsing rules is easy.
-
+* Making your parser in a declarative way.  
+* More manageable by cutting the targeting data into smaller chunks and defining the rules for each of them.  
+* You can squash some rules into a single rule by using `squash([name,] rules)`. If `name` is specified while squashing, the **DChunks** will automatically put the parsed result under that namespace. It's handy.  
+* Making a parser is mostly just about declaring rules. Integrating and compiling the parsing rules is easy.  
 
 Installation
 ------------
 
-Available via [npm](http://npmjs.org/):
+Available via [npm](http://npmjs.org/):  
 
-> $ npm install dissolve-chunks --save
+> $ npm install dissolve-chunks --save  
 
-<br>
+<br /> 
 
 Usage
 --------
 
-### 1. The targeting binaries to parse
+### 1. The targeting binaries to parse  
 
-<br>
-Assume we have a `data1` object valued as
+<br /> 
+Assume we have a `data1` object valued as  
+
 ```javascript
 var data1 = {
     x: 100,
@@ -67,7 +67,7 @@ var data1 = {
 };
 ```
 
-The `data1` is formatted in binaries according to the following table. For a string or an array, a field 'len' precedes to indicate the length of the string or array.
+The `data1` is formatted in binaries according to the following table. For a string or an array, a field 'len' precedes to indicate the length of the string or array.  
 
     +--------+-------+-------------------------+--------------------------------------------------------------+-----------------------------------+
     |  field |   x   |            y            |                               z                              |                 m                 |
@@ -83,7 +83,7 @@ The `data1` is formatted in binaries according to the following table. For a str
     |   hex  |   64  |   05   | 68 65 6c 6c 6f |   1e  |   06   | 77 6f 72 6c 64 21 |   05   | 01 02 03 04 05 |     05     |    03 49 74 20 ...   |
     +--------+-------+--------+----------------+-------+--------+-------------------+--------+----------------+------------+----------------------+
 
-The binary packet of the data object `data1` looks like:
+The binary packet of the data object `data1` looks like:  
 
 ```javascript
 var data1_buf = new Buffer([ 0x64, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x1e, 
@@ -95,42 +95,48 @@ var data1_buf = new Buffer([ 0x64, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x1e,
                                    0x05, 0x6c, 0x69, 0x66, 0x65, 0x20,
                                    0x07, 0x65, 0x61, 0x73, 0x69, 0x65, 0x72, 0x2e]);
 ```
-Next, let's see how to make the parser for `data1_buf` by using **DChunks**.
 
-<br>
-### 2. Step by Step: Delcare the rules and compile them into a parser
+Next, let's see how to make the parser for `data1_buf` by using **DChunks**.  
 
-This example is available here: [example01.js](https://github.com/simenkid/dissolve-chunks/blob/master/examples/example01.js).
+<br /> 
 
-<br>
-#### 2.1 Require the **dissolve-chunks** module and get the rule object
+### 2. Step by Step: Delcare the rules and compile them into a parser  
+
+This example is available here: [example01.js](https://github.com/simenkid/dissolve-chunks/blob/master/examples/example01.js).  
+
+<br /> 
+
+#### 2.1 Require the **dissolve-chunks** module and get the rule object  
 
 ```javascript
 var DChunks = require('dissolve-chunks'),
     ru = DChunks().Rule();  // rule object provides you with many pre-installed rules
 ```
 
-<br>
-#### 2.2 Declare your rules
+<br /> 
 
-* `data1_buf` is the binary packet of the data object `data1`, which is a very big chunk of data.
-* `data1` consists of many smaller data chunks, such as `data1.x`, `data1.y`, `data1.z`, and `data1.m`.
-* `data1.x` is the smallest chuck (or unit chunk), since it is typed as an `uint8` data and consumes 1 byte.
-    * To parse this simple data chunk, we can declare a rule `ru.uint8('x')` for it. Here, the parsed value will be assigned to the key `'x'`.
+#### 2.2 Declare your rules  
 
-* `data1.y` is a string. It is a chunk of characters. In `data1_buf`, this string is formatted with a preceding **'len'** field, an `uint8` number, to indicate the string length.
-    * We can arrange a rule `ru.stringPreLenUint8('y')` to parse it.
-* `data1.z` is another object within `data1`, and it is a data chunk of medium size. We will talk about it later.
-* `data1.m` is an array of strings. To parse an array of typed data, we can use the `repeat()` rule.
-    * In this example, `ru.repeat('m', ru.stringPreLenUint8)` means that using the `ru.stringPreLenUint` rule repeatly to parse the entries in the array and pairing the resulted array to the key `'m'`.
+* `data1_buf` is the binary packet of the data object `data1`, which is a very big chunk of data.  
+* `data1` consists of many smaller data chunks, such as `data1.x`, `data1.y`, `data1.z`, and `data1.m`.  
+* `data1.x` is the smallest chuck (or unit chunk), since it is typed as an `uint8` data and consumes 1 byte.  
+    * To parse this simple data chunk, we can declare a rule `ru.uint8('x')` for it. Here, the parsed value will be assigned to the key `'x'`.  
 
-<br>
-Let's go back to `data1.z`.
+* `data1.y` is a string. It is a chunk of characters. In `data1_buf`, this string is formatted with a preceding **'len'** field, an `uint8` number, to indicate the string length.  
+    * We can arrange a rule `ru.stringPreLenUint8('y')` to parse it.  
+* `data1.z` is another object within `data1`, and it is a data chunk of medium size. We will talk about it later.  
+* `data1.m` is an array of strings. To parse an array of typed data, we can use the `repeat()` rule.  
+    * In this example, `ru.repeat('m', ru.stringPreLenUint8)` means that using the `ru.stringPreLenUint` rule repeatly to parse the entries in the array and pairing the resulted array to the key `'m'`.  
 
-* For such a medium-size data chunk, we can use `squash('z', [ rule1, rule2, ...])` to tell the *DChunks* to squash it into a single rule and attach the parsed result of this rule to the key `'z'`. Here, `'z'` is also a namespace for **Dissolve** to know that who owns `this.vars` object. 
+<br /> 
 
-<br>
-For parsing the big chunk of `data1_buf`, we can declare many smaller chunk parsing rules that are ordered in an array `chunkRules`. Let's finish the rules declaration:
+Let's go back to `data1.z`.  
+
+* For such a medium-size data chunk, we can use `squash('z', [ rule1, rule2, ...])` to tell the *DChunks* to squash it into a single rule and attach the parsed result of this rule to the key `'z'`. Here, `'z'` is also a namespace for **Dissolve** to know that who owns `this.vars` object.  
+
+<br /> 
+
+For parsing the big chunk of `data1_buf`, we can declare many smaller chunk parsing rules that are ordered in an array `chunkRules`. Let's finish the rules declaration:  
 
 ```javascript
 var chunkRules = [
@@ -142,12 +148,13 @@ var chunkRules = [
     ru.repeat('m', ru.stringPreLenUint8)
 ];
 ```
-<br>
-#### 2.3 Compile the parser and listen for the 'parsed' event
+<br /> 
 
-* Firstly, call DChunks() to get an instance of the **DChunks**.
-* Then, call join() to let your rules get involved in the parsing process.
-* Finally, invoke compile() method to build the parser for `data1_buf`.
+#### 2.3 Compile the parser and listen for the 'parsed' event  
+
+* Firstly, call DChunks() to get an instance of the **DChunks**.  
+* Then, call join() to let your rules get involved in the parsing process.  
+* Finally, invoke compile() method to build the parser for `data1_buf`.  
 
 ```javascript
 var parser = DChunks().join(chunkRules).compile();
@@ -159,20 +166,25 @@ parser.on('parsed', function (result) {
 
 // That's all! You may like trying yourself to write this parser with Dissolve.
 ```
-<br>
-#### 2.4 Write the binaries to the parser
+
+<br /> 
+
+#### 2.4 Write the binaries to the parser  
 
 ```javascript
 parser.write(data1_buf);
 ```
-<br>
+
+<br /> 
+
 #### 2.5 Run
-> $ node example.js
+> $ node example.js  
 
-<br>
-#### 2.6 Another Style
+<br /> 
 
-You can declare your rule or array of rules separately, and join them together before doing the compilation.
+#### 2.6 Another Style  
+
+You can declare your rule or array of rules separately, and join them together before doing the compilation.  
 
 ```javascript
 var chunkRules1 = [ ru.uint8('x'), ru.stringPreLenUint8('y') ],
@@ -185,32 +197,28 @@ var chunkRules1 = [ ru.uint8('x'), ru.stringPreLenUint8('y') ],
 var parser = DChunks().join(chunkRules1).join(chunkRule2).join(chunkRule3).compile();
 ```
 
-<br>
+<br /> 
 
 APIs
 -------
 ### DChunks()
 
-This returns an instance of the *dissolve-chunks*.
-
+This returns an instance of the *dissolve-chunks*.  
 
 ### .Rule()
 
-This method returns the [*rule object (ru)*](#Rule_Object) which is a singleton in **DChunks**. The rule object provides you with many pre-installed rules and two useful methods. You can use `ru.squash()` to combine some parsing rules into a single one, and use `ru.clause()` to define you own parsing rule.
-
+This method returns the [*rule object (ru)*](#Rule_Object) which is a singleton in **DChunks**. The rule object provides you with many pre-installed rules and two useful methods. You can use `ru.squash()` to combine some parsing rules into a single one, and use `ru.clause()` to define you own parsing rule.  
 
 ### .join(rules)
 
-This chainable method allows you to concat the rules sequentially. The argument `rules` can be a single rule or an array of rules.
-
+This chainable method allows you to concat the rules sequentially. The argument `rules` can be a single rule or an array of rules.  
 
 ### .compile([option])
 
 After all the rules are joined in the parsing process, just invoke the method `.compile()` to get your parser. 
 The option is used to control whether the parser will keep parsing binaries written to it. The default option is `{ once: false }`. If your parser only do the parsing once, you can set the attribute once to `true`.  
 
-
-<br>
+<br /> 
 <a name="Rule_Object"></a>
 
 Rule
@@ -222,7 +230,7 @@ To get the rule object `ru`:
 var DChunks = require('dissolve-chunks'),
     ru = DChunks().Rule();
 ```
-<br>
+<br /> 
 
 ### .squash([ name, ] rules)
 
@@ -245,6 +253,7 @@ var chunkRules = [
     ru.repeat('m', ru.stringPreLenUint8)
 ];
 ```
+
 * Example(2)
 ```javascript
 var chunkRules = [
@@ -259,7 +268,8 @@ var chunkRules = [
     ru.repeat('m', ru.stringPreLenUint8)
 ];
 ```
-<br>
+
+<br /> 
 
 ### .clause([ ruleName, ] ruleFn)
 
@@ -288,10 +298,11 @@ var myStringRule = ru.clause('lovelyString', function (name) {
 // Use the rule somewhere from ru
 var chunkRules = [ ..., ru.lovelyString('foo_key'), ... ];
 ```
-<br>
+
+<br /> 
 
 ### Pre-installed rules
-*Note: LE (little endian), BE (big endian)
+*Note: LE (little endian), BE (big endian)  
 
 ##### 8-bit integer
 * `int8(name)`      - rule of parsing a signed 8 bit integer
