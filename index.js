@@ -55,7 +55,7 @@ module.exports = function () {
             dChunks.once("readable", function() {
                 var parsed;
                 while (parsed = dChunks.read()) {
-                    dChunks.emit('parsed', parsed);
+                    dChunks.emit('parsed', deepRebuild(parsed));
                 }
             });
         } else {
@@ -70,7 +70,7 @@ module.exports = function () {
             dChunks.on("readable", function() {
                 var parsed;
                 while (parsed = dChunks.read()) {
-                    dChunks.emit('parsed', parsed);
+                    dChunks.emit('parsed', deepRebuild(parsed));
                 }
             });
         }
@@ -317,4 +317,27 @@ function makeRulesOntoRule(ruleObj, ruleNames) {
             }());
         }
     }
+}
+
+function deepRebuild(obj) {
+    var built,
+        keys;
+
+    if (Array.isArray(obj)) {
+        built = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            built.push(deepRebuild(obj[i]));
+        }
+    } else if (typeof obj === 'object') {
+        built = {};
+        keys = Object.keys(obj);
+        keys.forEach(function (prop) {
+            built[prop] = deepRebuild(obj[prop]);
+        });
+
+    } else {
+        built = obj;
+    }
+
+    return built;
 }
