@@ -2,19 +2,6 @@ var expect = require('chai').expect,
     Dissolve = require('dissolve'),
     DChunks = require('../index.js');  // dissolve-chunks module
 
-var _ = require('lodash');
-// Properties
-//  - Rule
-//      - .squash, .clause, .term, .buffer, .string, .repeat
-//      - .bufferPreLenUint8, .bufferPreLenUint16, .stringPreLenUint8, .stringPreLenUint16
-
-// APIs
-//  - join
-//  - compile
-//  - parser.write(buf)
-// Events
-//  - parser.on('data', function (result) {})
-
 describe('Module Equipped Properties and Methods Check', function() {
     var dc = DChunks(),
         ru = dc.Rule();
