@@ -3,6 +3,10 @@ Dissolve-chunks
 
 Dissolve-chunks is a declarative parser generator based on dissolve.  
 
+[![Travis branch](https://img.shields.io/travis/simenkid/dissolve-chunks/master.svg?maxAge=2592000)](https://travis-ci.org/simenkid/dissolve-chunks)
+[![npm](https://img.shields.io/npm/v/dissolve-chunks.svg?maxAge=2592000)](https://www.npmjs.com/package/dissolve-chunks)
+[![npm](https://img.shields.io/npm/l/dissolve-chunks.svg?maxAge=2592000)](https://www.npmjs.com/package/dissolve-chunks)
+
 
 Overview
 --------
