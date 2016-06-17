@@ -1,6 +1,6 @@
 {
   "name": "dissolve-chunks",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A declarative parser generator based on dissolve",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,12 @@
     "stream"
   ],
   "author": "Simen Li",
+  "contributors": [
+    {
+      "name": "Hedy Wang",
+      "email": "hedywings@gmail.com"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/simenkid/dissolve-chunks/issues"
