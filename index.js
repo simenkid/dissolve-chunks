@@ -328,7 +328,7 @@ function deepRebuild(obj) {
         for (var i = 0, len = obj.length; i < len; i++) {
             built.push(deepRebuild(obj[i]));
         }
-    } else if (typeof obj === 'object') {
+    } else if (typeof obj === 'object' && !Buffer.isBuffer(obj)) {
         built = {};
         keys = Object.keys(obj);
         keys.forEach(function (prop) {
