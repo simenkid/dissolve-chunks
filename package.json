@@ -1,6 +1,6 @@
 {
   "name": "dissolve-chunks",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "A declarative parser generator based on dissolve",
   "main": "index.js",
   "scripts": {
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/simenkid/dissolve-chunks",
   "dependencies": {
-    "dissolve": "~0.3.3"
+    "dissolve": "0.3.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
