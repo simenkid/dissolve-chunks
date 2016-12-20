@@ -11,6 +11,8 @@ A declarative parser generator based on dissolve.
 
 Please visit the [Wiki](https://github.com/simenkid/dissolve-chunks/wiki).
 
+<br />
+
 ## Overview  
 
 With dissolve-chunks (**DChunks**), you can make a parser by defining the parsing rules for each chunk of the binaries. This means that you need not to write your parsing codes from the beginning to the end of the binaries. You can separate the targeting data into smaller chunks, and then define the parsing rules for each of them. After all rules are ready, you can call the chainable method **join()** to sequentially connect all your rules . Finally, just call **compile()** to get your parser.  
@@ -33,7 +35,8 @@ parser.on('parsed', function (result) {
 });
 ```
   
-<a name="Features"></a>
+<br />
+
 ## Features  
 
 * Making your parser in a declarative way.  
@@ -41,13 +44,19 @@ parser.on('parsed', function (result) {
 * You can squash some rules into a single rule by using `squash([name,] rules)`. If `name` is specified while squashing, the **DChunks** will automatically put the parsed result under that namespace. It's handy.  
 * Making a parser is mostly just about declaring rules. Integrating and compiling the parsing rules is easy.  
 
+<br />
+
 ## Installation  
 
 > $ npm install dissolve-chunks --save  
   
+<br />
+
 ## Usage  
 
 See [Usage](https://github.com/simenkid/dissolve-chunks/wiki#Usage) on the Wiki.  
+
+<br />
 
 ## License  
 
